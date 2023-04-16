@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# For current
+build/
+data/
