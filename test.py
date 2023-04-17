@@ -18,6 +18,6 @@ for i in range(dim):
             result[i, j] = c[i * (i + 1) // 2 + j]
 
 soln = sp.linalg.cholesky(b).T
-print(result)
-print(soln)
+# print(result)
+# print(soln)
 print(np.linalg.norm(soln - result))

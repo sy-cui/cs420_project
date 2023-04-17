@@ -17,5 +17,6 @@ fi
 cd build/
 cmake ..
 cmake --build .
+mpirun -np 1 Main
 
 cd $curr_dir

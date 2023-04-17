@@ -34,3 +34,4 @@
 # For current
 build/
 data/
+.vscode/
