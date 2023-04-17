@@ -159,6 +159,20 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < argc; i++) {
         std::string s(argv[i]);
+        if (s == "-h" || s == "--help") {
+            std::cout << "Usage: \t ./Main [OPTIONS]" << std::endl;
+            std::cout << "\t mpirun [MPI_RUN_OPTIONS] Main [OPTIONS]" << std::endl;
+            std::cout << std::endl;
+            std::cout << "OPTIONS:" << std::endl;
+            std::cout << "-d|--dim \t \t Dimension of the matrix. Defaults to 4.\n";
+            std::cout << "-g|--gen-new \t \t Generate a new matrix. Defaults to false.\n";
+            std::cout << "-s|--serial \t \t Run serial Cholesky factorization (default). EXCLUSIVE FROM -o AND -m.\n";
+            std::cout << "-o|--omp \t \t Run OpenMP Cholesky factorization. EXCLUSIVE FROM -s AND -m.\n";
+            std::cout << "-m|--mpi \t \t Run MPI Cholesky factorization. EXCLUSIVE FROM -s AND -o.\n";
+            std::cout << "-p|--num-process \t Number of process for multithreading (omp).\n";
+            return 1;
+        }
+
         if (s == "-d" || s == "--dim") {
             dim = std::stoi(argv[i + 1]);
         }
