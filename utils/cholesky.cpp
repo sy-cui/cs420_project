@@ -1,10 +1,12 @@
-#include "cholesky.hpp"
-#include "mpi.h"
 #include <cmath>
 #include <vector>
 #include <string>
 #include <map>
+#include <iostream>
 
+#include "mpi.h"
+#include "omp.h"
+#include "cholesky.hpp"
 
 void serial_cholesky(const SPDMatrix& A, std::string out_fname) {
     SPDMatrix L(A);
@@ -20,6 +22,32 @@ void serial_cholesky(const SPDMatrix& A, std::string out_fname) {
             }
         }
     }
+    L.write_to_file(out_fname);
+}
+
+void omp_cholesky(const SPDMatrix& A, std::string out_fname, int np) {
+    SPDMatrix L(A);
+    int i, j, k;
+
+    omp_set_dynamic(0);
+	omp_set_num_threads(np);
+
+    for (k = 0; k < L.dim; ++k) {
+        L(k, k) = sqrt(L(k, k));
+
+        #pragma omp parallel for private(i) shared(k, L)
+        for (i = k + 1; i < L.dim; ++i) {
+            L(i, k) /= L(k, k);
+        }
+
+        #pragma omp parallel for private(i, j) shared(k, L)
+        for (i = k + 1; i < L.dim; ++i) {
+            for (j = k + 1; j < i + 1; ++j) {
+                L(i, j) -= L(i, k) * L(j, k);
+            }
+        }
+    }
+    
     L.write_to_file(out_fname);
 }
 

@@ -7,6 +7,7 @@ project(Main
 set(CMAKE_CXX_COMPILER mpic++)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 
 add_subdirectory(utils)
 

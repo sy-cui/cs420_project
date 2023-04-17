@@ -23,6 +23,26 @@ int run_serial(int dim, bool gen_new) {
     return 0;
 }
 
+int run_omp(int dim, bool gen_new, int np) {
+    std::string in_fname = "../data/size" + std::to_string(dim) + ".txt";
+    std::string out_fname = (
+        "../result/omp_np_" + std::to_string(np) 
+        + "_dim_" + std::to_string(dim) 
+        + ".txt"
+    );
+
+    // Generate a new matrix. This can be expensive
+    if (gen_new) {
+        generate_random_spd_matrix(in_fname, dim);
+    }
+
+    SPDMatrix test_matrix(dim);
+    test_matrix.load_from_file(in_fname);
+    // test_matrix.print_full_matrix();
+    omp_cholesky(test_matrix, out_fname, np);
+    return 0;
+}
+
 int run_mpi(int dim, bool gen_new) {
     int tril_size = dim * (dim + 1) / 2;
 
@@ -173,8 +193,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "Generating new matrix ...\n";
             }
             std::cout << "=================================\n";
-            // return run_omp(dim, gen_new, np);
-            break;
+            return run_omp(dim, gen_new, np);
         case 2:
             std::cout << "==== Running MPI Cholesky ====\n";
             std::cout << "Dimensions = " << dim << "\n";

@@ -18,7 +18,7 @@ cd build/
 cmake ..
 cmake --build .
 
-# ./Main -d 32 -g
+./Main -d 8 -o -p 2
 # mpirun -np 1 Main -o 
 
 cd $curr_dir
