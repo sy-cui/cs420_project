@@ -10,7 +10,7 @@ for i in range(dim):
             b[i, j] = a[i * (i + 1) // 2 + j]
             b[j, i] = b[i, j]
 
-c = np.loadtxt("result.txt")
+c = np.loadtxt(f"result/serial_dim_{dim}.txt")
 result = np.zeros((dim, dim))
 for i in range(dim):
     for j in range(dim):
