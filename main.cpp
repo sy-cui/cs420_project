@@ -2,34 +2,41 @@
 #include <fstream>
 #include <map>
 #include <vector>
+
 #include "mpi.h"
 #include "utils.hpp"
 #include "cholesky.hpp"
 
-int run_serial(int argc, char* argv[]) {
-    int dim = 32;
+int run_serial(int dim, bool gen_new) {
     std::string in_fname = "../data/size" + std::to_string(dim) + ".txt";
-    std::string out_fname = "../result.txt";
+    std::string out_fname = "../result/serial_dim_" + std::to_string(dim) + ".txt";
 
     // Generate a new matrix. This can be expensive
-    // generate_random_spd_matrix(in_fname, dim);
+    if (gen_new) {
+        generate_random_spd_matrix(in_fname, dim);
+    }
 
     SPDMatrix test_matrix(dim);
     test_matrix.load_from_file(in_fname);
     // test_matrix.print_full_matrix();
     serial_cholesky(test_matrix, out_fname);
-    return 0;   
+    return 0;
 }
 
-int run_mpi(int argc, char* argv[]) {
-    int dim = 32;
+int run_mpi(int dim, bool gen_new) {
     int tril_size = dim * (dim + 1) / 2;
-    // generate_random_spd_matrix("../data/size" + std::to_string(dim) + ".txt", dim);
-    MPI_Init(nullptr, nullptr);
+
+    std::string in_fname = "../data/size" + std::to_string(dim) + ".txt";
+    
+    // Generate a new matrix. This can be expensive
+    if (gen_new) {
+        generate_random_spd_matrix(in_fname, dim);
+    }
+
+    // Initialize MPI communicator
+    MPI_Init(NULL, NULL);
 
     int rank, size;
-    std::string in_fname = "../data/size" + std::to_string(dim) + ".txt";
-    std::string out_fname = "../result_mpi.txt";
 
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -97,6 +104,11 @@ int run_mpi(int argc, char* argv[]) {
         }
         MPI_Waitall(num_reqs, reqs, MPI_STATUS_IGNORE);
 
+        std::string out_fname = (
+            "../result/mpi_np_" + std::to_string(size) 
+            + "_dim_" + std::to_string(dim) 
+            + ".txt"
+        );
         std::ofstream outfile(out_fname);
         for (int i = 0; i < tril_size; ++i) {
             outfile << soln[i];
@@ -120,5 +132,64 @@ int run_mpi(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-    return run_mpi(argc, argv);
+    int dim = 4;
+    bool gen_new = false;
+    int run_option = 0;
+    int np = 1;
+
+    for (int i = 0; i < argc; i++) {
+        std::string s(argv[i]);
+        if (s == "-d" || s == "--dim") {
+            dim = std::stoi(argv[i + 1]);
+        }
+
+        if (s == "-g" || s == "--gen-new") {
+            gen_new = true;
+        }
+
+        if (s == "-s" || s == "--serial") {
+            run_option = 0;
+        }
+
+        if (s == "-o" || s == "--omp") {
+            run_option = 1;
+        }
+
+        if (s == "-m" || s == "--mpi") {
+            run_option = 2;
+        }
+
+        if (s == "-p" || s == "--num-process") {
+            np = std::stoi(argv[i + 1]);
+        }
+    }
+
+    switch (run_option) {
+        case 1:
+            std::cout << "==== Running OpenMP Cholesky ====\n";
+            std::cout << "Dimensions = " << dim << "\n";
+            std::cout << "Number of processes = " << np << "\n";
+            if (gen_new) {
+                std::cout << "Generating new matrix ...\n";
+            }
+            std::cout << "=================================\n";
+            // return run_omp(dim, gen_new, np);
+            break;
+        case 2:
+            std::cout << "==== Running MPI Cholesky ====\n";
+            std::cout << "Dimensions = " << dim << "\n";
+            if (gen_new) {
+                std::cout << "Generating new matrix ...\n";
+            }
+            std::cout << "==============================\n";
+            return run_mpi(dim, gen_new);
+        default:
+            std::cout << "==== Running Serial Cholesky ====\n";
+            std::cout << "Dimensions = " << dim << "\n";
+            if (gen_new) {
+                std::cout << "Generating new matrix ...\n";
+            }
+            std::cout << "=================================\n";
+            return run_serial(dim, gen_new);
+    }
 }

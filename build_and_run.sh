@@ -4,19 +4,21 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 curr_dir="$(pwd)"
 
 cd $script_dir
-if [ ! -d "build" ]
-then
-    mkdir build
-fi
+required_dir="build data result"
 
-if [ ! -d "data" ]
-then
-    mkdir data
-fi
+for dir in $required_dir;
+do
+    if [ ! -d $dir ]
+    then
+        mkdir $dir
+    fi 
+done
 
 cd build/
 cmake ..
 cmake --build .
-mpirun -np 1 Main
+
+# ./Main -d 32 -g
+# mpirun -np 1 Main -o 
 
 cd $curr_dir
