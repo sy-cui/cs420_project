@@ -2,6 +2,7 @@
 #include <fstream>
 #include <map>
 #include <vector>
+#include <chrono>
 
 #include "mpi.h"
 #include "utils.hpp"
@@ -19,7 +20,8 @@ int run_serial(int dim, bool gen_new) {
     SPDMatrix test_matrix(dim);
     test_matrix.load_from_file(in_fname);
     // test_matrix.print_full_matrix();
-    serial_cholesky(test_matrix, out_fname);
+    double time = serial_cholesky(test_matrix, out_fname);
+    std::cout << "Serial total time: " << time << " ms." << std::endl;
     return 0;
 }
 
@@ -39,7 +41,8 @@ int run_omp(int dim, bool gen_new, int np) {
     SPDMatrix test_matrix(dim);
     test_matrix.load_from_file(in_fname);
     // test_matrix.print_full_matrix();
-    omp_cholesky(test_matrix, out_fname, np);
+    double time = omp_cholesky(test_matrix, out_fname, np);
+    std::cout << "OpenMP total time: " << time << " ms." << std::endl;
     return 0;
 }
 
@@ -101,13 +104,16 @@ int run_mpi(int dim, bool gen_new) {
 
     // Cholesky factorization 
     // After this call all row_buffers should be correctly factorized
-    mpi_cholesky(rank, size, dim, row_buffers);
+    double time = mpi_cholesky(rank, size, dim, row_buffers);
+    double total_time;
+    MPI_Reduce(&time, &total_time, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
     // // All processes send the rows back to process 0
     MPI_Request reqs[dim];
     int num_reqs = 0, row_start;
 
     if (rank == 0) {
+        std::cout << "MPI total time: " << total_time << " ms" << std::endl;
         double* soln = (double*)malloc(sizeof(double) * tril_size);
         for (int i = 0; i < dim; i++) {
             row_start = i * (i + 1) / 2;
@@ -154,6 +160,7 @@ int run_mpi(int dim, bool gen_new) {
 int main(int argc, char* argv[]) {
     int dim = 4;
     bool gen_new = false;
+    bool verbose = false;
     int run_option = 0;
     int np = 1;
 
@@ -170,6 +177,7 @@ int main(int argc, char* argv[]) {
             std::cout << "-o|--omp \t \t Run OpenMP Cholesky factorization. EXCLUSIVE FROM -s AND -m.\n";
             std::cout << "-m|--mpi \t \t Run MPI Cholesky factorization. EXCLUSIVE FROM -s AND -o.\n";
             std::cout << "-p|--num-process \t Number of process for multithreading (omp).\n";
+            std::cout << "-v|--verbose \t \t Print additional information.\n";
             return 1;
         }
 
@@ -196,33 +204,45 @@ int main(int argc, char* argv[]) {
         if (s == "-p" || s == "--num-process") {
             np = std::stoi(argv[i + 1]);
         }
+
+        if (s == "-v" || s == "--verbose") {
+            verbose = true;
+        }
     }
 
     switch (run_option) {
         case 1:
-            std::cout << "==== Running OpenMP Cholesky ====\n";
-            std::cout << "Dimensions = " << dim << "\n";
-            std::cout << "Number of processes = " << np << "\n";
-            if (gen_new) {
-                std::cout << "Generating new matrix ...\n";
+            if (verbose) {
+                std::cout << "==== Running OpenMP Cholesky ====\n";
+                std::cout << "Dimensions = " << dim << "\n";
+                std::cout << "Number of processes = " << np << "\n";
+                if (gen_new) {
+                    std::cout << "Generating new matrix ...\n";
+                }
+                std::cout << "=================================\n";
             }
-            std::cout << "=================================\n";
+            
             return run_omp(dim, gen_new, np);
         case 2:
-            std::cout << "==== Running MPI Cholesky ====\n";
-            std::cout << "Dimensions = " << dim << "\n";
-            if (gen_new) {
-                std::cout << "Generating new matrix ...\n";
+            if (verbose) {
+                std::cout << "==== Running MPI Cholesky ====\n";
+                std::cout << "Dimensions = " << dim << "\n";
+                if (gen_new) {
+                    std::cout << "Generating new matrix ...\n";
+                }
+                std::cout << "==============================\n";
             }
-            std::cout << "==============================\n";
+            
             return run_mpi(dim, gen_new);
         default:
-            std::cout << "==== Running Serial Cholesky ====\n";
-            std::cout << "Dimensions = " << dim << "\n";
-            if (gen_new) {
-                std::cout << "Generating new matrix ...\n";
+            if (verbose) {
+                std::cout << "==== Running Serial Cholesky ====\n";
+                std::cout << "Dimensions = " << dim << "\n";
+                if (gen_new) {
+                    std::cout << "Generating new matrix ...\n";
+                }
+                std::cout << "=================================\n";
             }
-            std::cout << "=================================\n";
             return run_serial(dim, gen_new);
     }
 }

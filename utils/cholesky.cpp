@@ -3,13 +3,15 @@
 #include <string>
 #include <map>
 #include <iostream>
+#include <chrono>
 
 #include "mpi.h"
 #include "omp.h"
 #include "cholesky.hpp"
 
-void serial_cholesky(const SPDMatrix& A, std::string out_fname) {
+double serial_cholesky(const SPDMatrix& A, std::string out_fname) {
     SPDMatrix L(A);
+    auto start = std::chrono::high_resolution_clock::now();
     for (int k = 0; k < L.dim; ++k) {
         L(k, k) = sqrt(L(k, k));
 
@@ -22,16 +24,23 @@ void serial_cholesky(const SPDMatrix& A, std::string out_fname) {
             }
         }
     }
+    auto end = std::chrono::high_resolution_clock::now();
+
     L.write_to_file(out_fname);
+
+    std::chrono::duration<double, std::milli> time = end - start;
+
+    return time.count();
 }
 
-void omp_cholesky(const SPDMatrix& A, std::string out_fname, int np) {
+double omp_cholesky(const SPDMatrix& A, std::string out_fname, int np) {
     SPDMatrix L(A);
     int i, j, k;
 
     omp_set_dynamic(0);
 	omp_set_num_threads(np);
 
+    auto start = std::chrono::high_resolution_clock::now();
     for (k = 0; k < L.dim; ++k) {
         L(k, k) = sqrt(L(k, k));
 
@@ -47,11 +56,16 @@ void omp_cholesky(const SPDMatrix& A, std::string out_fname, int np) {
             }
         }
     }
+    auto end = std::chrono::high_resolution_clock::now();
     
     L.write_to_file(out_fname);
+
+    std::chrono::duration<double, std::milli> time = end - start;
+
+    return time.count();
 }
 
-void mpi_cholesky(int rank, int size, int dim, std::map<int, std::vector<double>> &row_buffers) {
+double mpi_cholesky(int rank, int size, int dim, std::map<int, std::vector<double>> &row_buffers) {
     // Figure out which rows the current process is in charge of
     auto curr_it = row_buffers.begin();
     std::vector<int> row_indices;
@@ -68,6 +82,7 @@ void mpi_cholesky(int rank, int size, int dim, std::map<int, std::vector<double>
     int curr_root_process;
     double pivot;
 
+    auto start = std::chrono::high_resolution_clock::now();
     for (int k = 0; k < dim; k++) {
 
         // A[k][k] = sqrt(A[k][k])
@@ -102,6 +117,11 @@ void mpi_cholesky(int rank, int size, int dim, std::map<int, std::vector<double>
         
         MPI_Barrier(MPI_COMM_WORLD);
     }
+    auto end = std::chrono::high_resolution_clock::now();
 
     free(curr_col);
+
+    std::chrono::duration<double, std::milli> time = end - start;
+
+    return time.count();
 }
