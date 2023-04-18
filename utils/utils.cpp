@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include "utils.hpp"
+#include <iomanip>
 
 SPDMatrix::SPDMatrix(const int& dim): 
     dim(dim), size(dim * (dim + 1) / 2) {
