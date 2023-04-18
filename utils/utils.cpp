@@ -69,19 +69,21 @@ void generate_random_spd_matrix(std::string fname, int dim) {
     std::uniform_real_distribution<double> dist(1.0, 2.0);
 
     // Generate random matrix A
-    double random_matrix[dim][dim], spd_full_matrix[dim][dim];
+    double* random_matrix = (double*)malloc(sizeof(double) * dim * dim);
+    double* spd_full_matrix = (double*)malloc(sizeof(double) * dim * dim);
+    // double random_matrix[dim][dim], spd_full_matrix[dim][dim];
     for (int i = 0; i < dim; ++i) {
         for (int j = 0; j < dim; ++j) {
-            random_matrix[i][j] = dist(gen);
+            random_matrix[i * dim + j] = dist(gen);
         }
     }
 
     // A * transpose(A)
     for (int i = 0; i < dim; ++i) {
         for (int j = 0; j < dim; ++j) {
-            spd_full_matrix[i][j] = 0.0;
+            spd_full_matrix[i * dim + j] = 0.0;
             for (int k = 0; k < dim; ++k) {
-                spd_full_matrix[i][j] += random_matrix[i][k] * random_matrix[j][k];
+                spd_full_matrix[i * dim + j] += random_matrix[i * dim + k] * random_matrix[j * dim + k];
             }
         }
     }
@@ -90,8 +92,10 @@ void generate_random_spd_matrix(std::string fname, int dim) {
     std::ofstream outfile(fname);
     for (int i = 0; i < dim; ++i) {
         for (int j = 0; j <= i; ++j) {
-            outfile << spd_full_matrix[i][j];
+            outfile << spd_full_matrix[i * dim + j];
             outfile << "\n";
         }
     }
+    free(random_matrix);
+    free(spd_full_matrix);
 }
