@@ -66,7 +66,7 @@ void generate_random_spd_matrix(std::string fname, int dim) {
     // https://en.cppreference.com/w/cpp/numeric/random/uniform_real_distribution
     std::random_device rd; 
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> dist(1.0, 2.0);
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
 
     // Generate random matrix A
     double* random_matrix = (double*)malloc(sizeof(double) * dim * dim);
@@ -79,12 +79,17 @@ void generate_random_spd_matrix(std::string fname, int dim) {
     }
 
     // A * transpose(A)
+    double scale_factor;
     for (int i = 0; i < dim; ++i) {
         for (int j = 0; j < dim; ++j) {
             spd_full_matrix[i * dim + j] = 0.0;
             for (int k = 0; k < dim; ++k) {
                 spd_full_matrix[i * dim + j] += random_matrix[i * dim + k] * random_matrix[j * dim + k];
             }
+            if (i == 0 && j == 0) {
+                scale_factor = spd_full_matrix[0];
+            }
+            spd_full_matrix[i * dim + j] /= scale_factor;
         }
     }
 
@@ -92,7 +97,7 @@ void generate_random_spd_matrix(std::string fname, int dim) {
     std::ofstream outfile(fname);
     for (int i = 0; i < dim; ++i) {
         for (int j = 0; j <= i; ++j) {
-            outfile << spd_full_matrix[i * dim + j];
+            outfile << std::setprecision(std::numeric_limits<double>::digits10 + 2) << spd_full_matrix[i * dim + j];
             outfile << "\n";
         }
     }
