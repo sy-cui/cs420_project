@@ -35,7 +35,7 @@ double& SPDMatrix::operator()(unsigned int row, unsigned int column) {
 void SPDMatrix::write_to_file(std::string fname) const {
     std::ofstream outfile(fname);
     for (int i = 0; i < size; ++i) {
-        outfile << data[i];
+        outfile << std::setprecision(std::numeric_limits<double>::digits10 + 2) << data[i];
         outfile << "\n";
     }
 }

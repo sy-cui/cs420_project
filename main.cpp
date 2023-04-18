@@ -3,6 +3,7 @@
 #include <map>
 #include <vector>
 #include <chrono>
+#include <iomanip>
 
 #include "mpi.h"
 #include "utils.hpp"
@@ -137,7 +138,7 @@ int run_mpi(int dim, bool gen_new) {
         );
         std::ofstream outfile(out_fname);
         for (int i = 0; i < tril_size; ++i) {
-            outfile << soln[i];
+            outfile << std::setprecision(std::numeric_limits<double>::digits10 + 2) << soln[i];
             outfile << "\n";
         }
 
