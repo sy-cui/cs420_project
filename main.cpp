@@ -105,15 +105,15 @@ int run_mpi(int dim, bool gen_new) {
     // Cholesky factorization 
     // After this call all row_buffers should be correctly factorized
     double time = mpi_cholesky(rank, size, dim, row_buffers);
-    double total_time;
-    MPI_Reduce(&time, &total_time, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+    double max_time;
+    MPI_Reduce(&time, &max_time, 1, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
 
     // // All processes send the rows back to process 0
     MPI_Request reqs[dim];
     int num_reqs = 0, row_start;
 
     if (rank == 0) {
-        std::cout << "MPI total time: " << total_time << " ms" << std::endl;
+        std::cout << "MPI total time: " << max_time << " ms" << std::endl;
         double* soln = (double*)malloc(sizeof(double) * tril_size);
         for (int i = 0; i < dim; i++) {
             row_start = i * (i + 1) / 2;
