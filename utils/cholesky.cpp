@@ -41,21 +41,26 @@ double omp_cholesky(const SPDMatrix& A, std::string out_fname, int np) {
 	omp_set_num_threads(np);
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (k = 0; k < L.dim; ++k) {
-        L(k, k) = sqrt(L(k, k));
+    #pragma omp parallel private(i, j, k), shared(L)
+    {   
+        for (k = 0; k < L.dim; ++k) {
+            #pragma omp single
+            L(k, k) = sqrt(L(k, k));
 
-        #pragma omp parallel for private(i) shared(k, L)
-        for (i = k + 1; i < L.dim; ++i) {
-            L(i, k) /= L(k, k);
-        }
+            #pragma omp for 
+            for (i = k + 1; i < L.dim; ++i) {
+                L(i, k) /= L(k, k);
+            }
 
-        #pragma omp parallel for private(i, j) shared(k, L)
-        for (i = k + 1; i < L.dim; ++i) {
-            for (j = k + 1; j < i + 1; ++j) {
-                L(i, j) -= L(i, k) * L(j, k);
+            #pragma omp for
+            for (i = k + 1; i < L.dim; ++i) {
+                for (j = k + 1; j < i + 1; ++j) {
+                    L(i, j) -= L(i, k) * L(j, k);
+                }
             }
         }
     }
+    
     auto end = std::chrono::high_resolution_clock::now();
     
     L.write_to_file(out_fname);
@@ -66,14 +71,7 @@ double omp_cholesky(const SPDMatrix& A, std::string out_fname, int np) {
 }
 
 double mpi_cholesky(int rank, int size, int dim, std::map<int, std::vector<double>> &row_buffers) {
-    // Figure out which rows the current process is in charge of
     auto curr_it = row_buffers.begin();
-    std::vector<int> row_indices;
-    for (int i = 0; i < dim; ++i) {
-        if (i % size == rank) {
-            row_indices.push_back(i);
-        }
-    }
 
     // Dynamic buffer for the current column
     double* curr_col = (double*)malloc(sizeof(double) * dim);
