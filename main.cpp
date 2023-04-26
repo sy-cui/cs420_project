@@ -131,16 +131,16 @@ int run_mpi(int dim, bool gen_new) {
         }
         MPI_Waitall(num_reqs, reqs, MPI_STATUS_IGNORE);
 
-        std::string out_fname = (
-            "../result/mpi_np_" + std::to_string(size) 
-            + "_dim_" + std::to_string(dim) 
-            + ".txt"
-        );
-        std::ofstream outfile(out_fname);
-        for (int i = 0; i < tril_size; ++i) {
-            outfile << std::setprecision(std::numeric_limits<double>::digits10 + 2) << soln[i];
-            outfile << "\n";
-        }
+        // std::string out_fname = (
+        //     "../result/mpi_np_" + std::to_string(size) 
+        //     + "_dim_" + std::to_string(dim) 
+        //     + ".txt"
+        // );
+        // std::ofstream outfile(out_fname);
+        // for (int i = 0; i < tril_size; ++i) {
+        //     outfile << std::setprecision(std::numeric_limits<double>::digits10 + 2) << soln[i];
+        //     outfile << "\n";
+        // }
 
         free(soln);
 
