@@ -20,6 +20,7 @@ def generate_mpi_strong_scaling(num_threads, dims):
                 num_nodes=np,
                 np=np,
                 dim=dim,
+                prepend="srun --mpi=pmi2 "
             )
 
 def generate_omp_weak_scaling(num_threads, dims):
@@ -48,6 +49,7 @@ def generate_mpi_weak_scaling(num_threads, dims):
             num_nodes=np,
             np=np,
             dim=dim,
+            prepend="srun --mpi=pmi2 "
         )
 
 
@@ -58,6 +60,7 @@ def write_submit_file(
     np: int,
     dim: int,
     dir: str = "",
+    prepend: str = "",
 ):
     filename = dir + f"submit_{key_string}_np_{np}_dim_{dim}.sh"
 
@@ -74,7 +77,7 @@ def write_submit_file(
             f"#SBATCH -p secondary\n",
             "\n",
             f"cd $SLURM_SUBMIT_DIR/build\n",    # Assume called from source tree
-            f"./Main -{run_flag} -p {np} -d {dim} > $SLURM_SUBMIT_DIR/result/{key_string}-dim-{dim}-np-{np}.txt\n"
+            f"{prepend}./Main -{run_flag} -p {np} -d {dim} > $SLURM_SUBMIT_DIR/result/{key_string}-dim-{dim}-np-{np}.txt\n"
         ]
     )
     f.close()
