@@ -4,7 +4,7 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 curr_dir="$(pwd)"
 
 cd $script_dir
-required_dir="build data result"
+required_dir="build data result batchFiles"
 
 for dir in $required_dir;
 do
