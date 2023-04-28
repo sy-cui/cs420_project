@@ -18,7 +18,7 @@ def generate_mpi_strong_scaling(num_threads, dims):
                 key_string="mpi_strong",
                 run_flag="m",
                 num_nodes=np,
-                np=np,
+                np=1,
                 dim=dim,
                 prepend="srun --mpi=pmi2 "
             )
@@ -48,7 +48,7 @@ def generate_mpi_weak_scaling(num_threads, base_dim):
             key_string="mpi_weak",
             run_flag="m",
             num_nodes=np,
-            np=np,
+            np=1,
             dim=dim,
             prepend="srun --mpi=pmi2 "
         )
