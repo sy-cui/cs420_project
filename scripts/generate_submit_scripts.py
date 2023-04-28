@@ -23,10 +23,11 @@ def generate_mpi_strong_scaling(num_threads, dims):
                 prepend="srun --mpi=pmi2 "
             )
 
-def generate_omp_weak_scaling(num_threads, dims):
-    assert len(num_threads) == len(dims), (
-        "For weak scaling, num_threads and dims must have the same length"
-    )
+def generate_omp_weak_scaling(num_threads, base_dim):
+    dims = []
+    for np in num_threads:
+        dims.append(int(base_dim * (np / num_threads[0]) ** (1 / 3)))
+
     for np, dim in zip(num_threads, dims):
         write_submit_file(
             dir="single_node_weak/",
@@ -37,10 +38,10 @@ def generate_omp_weak_scaling(num_threads, dims):
             dim=dim,
         )
         
-def generate_mpi_weak_scaling(num_threads, dims):
-    assert len(num_threads) == len(dims), (
-        "For weak scaling, num_threads and dims must have the same length"
-    )
+def generate_mpi_weak_scaling(num_threads, base_dim):
+    dims = []
+    for np in num_threads:
+        dims.append(int(base_dim * (np / num_threads[0]) ** (1 / 3)))
     for np, dim in zip(num_threads, dims):
         write_submit_file(
             dir="across_node_weak/",
@@ -92,10 +93,10 @@ if __name__ == "__main__":
         dims=[4096],
     )
     generate_omp_weak_scaling(
-        num_threads=[1, 4, 16],
-        dims=[1024, 2048, 4096],
+        num_threads=[1, 2, 4, 8, 16],
+        base_dim=512,
     )
     generate_mpi_weak_scaling(
-        num_threads=[1, 4, 16],
-        dims=[1024, 2048, 4096],
+        num_threads=[1, 2, 4, 8, 16],
+        base_dim=512,
     )
