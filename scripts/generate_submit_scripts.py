@@ -63,7 +63,9 @@ def write_submit_file(
     dir: str = "",
     prepend: str = "",
 ):
-    filename = dir + f"submit_{key_string}_np_{np}_dim_{dim}.sh"
+    ntasks = np * num_nodes
+    
+    filename = dir + f"submit_{key_string}_np_{ntasks}_dim_{dim}.sh"
 
     f = open(filename, "w")
     f.writelines(
@@ -71,14 +73,14 @@ def write_submit_file(
             "#!/bin/bash\n",
             f"#SBATCH --time=00:30:00\n",
             f"#SBATCH --nodes={num_nodes}\n",
-            f"#SBATCH --ntasks={np}\n",
-            f"#SBATCH --job-name=\"choleskey-benchmark-{key_string}-np-{np}-dim-{dim}\"\n",
-            f"#SBATCH --output=batchFiles/{key_string}-np-{np}-dim-{dim}-%J.out\n",
-            f"#SBATCH --error=batchFiles/{key_string}-np-{np}-dim-{dim}-%J.err\n",
+            f"#SBATCH --ntasks-per-node={np}\n",
+            f"#SBATCH --job-name=\"choleskey-benchmark-{key_string}-np-{ntasks}-dim-{dim}\"\n",
+            f"#SBATCH --output=batchFiles/{key_string}-np-{ntasks}-dim-{dim}-%J.out\n",
+            f"#SBATCH --error=batchFiles/{key_string}-np-{ntasks}-dim-{dim}-%J.err\n",
             f"#SBATCH -p secondary\n",
             "\n",
             f"cd $SLURM_SUBMIT_DIR/build\n",    # Assume called from source tree
-            f"{prepend}./Main -{run_flag} -p {np} -d {dim} > $SLURM_SUBMIT_DIR/result/{key_string}-dim-{dim}-np-{np}.txt\n"
+            f"{prepend}./Main -{run_flag} -p {np} -d {dim} > $SLURM_SUBMIT_DIR/result/{key_string}-dim-{dim}-np-{ntasks}.txt\n"
         ]
     )
     f.close()
