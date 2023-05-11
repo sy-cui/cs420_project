@@ -41,3 +41,6 @@ scripts/across_node_weak
 scripts/single_node_strong
 scripts/single_node_weak
 .vscode/
+
+# Mac OS
+.DS_Store
