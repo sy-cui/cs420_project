@@ -26,7 +26,7 @@ double serial_cholesky(const SPDMatrix& A, std::string out_fname) {
     }
     auto end = std::chrono::high_resolution_clock::now();
 
-    // L.write_to_file(out_fname);
+    L.write_to_file(out_fname);
 
     std::chrono::duration<double, std::milli> time = end - start;
 
@@ -63,7 +63,7 @@ double omp_cholesky(const SPDMatrix& A, std::string out_fname, int np) {
     
     auto end = std::chrono::high_resolution_clock::now();
     
-    // L.write_to_file(out_fname);
+    L.write_to_file(out_fname);
 
     std::chrono::duration<double, std::milli> time = end - start;
 
